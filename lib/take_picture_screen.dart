@@ -24,7 +24,9 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   @override
   void initState() {
     super.initState();
-    setupCamera();
+    Future.delayed(Duration(milliseconds: 500),(){
+      setupCamera();
+    });
   }
 
   setupCamera() async {

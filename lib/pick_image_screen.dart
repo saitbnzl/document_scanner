@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:document_scanner/Utils.dart';
 import 'package:document_scanner/document_scanner.dart';
+import 'package:document_scanner/edit_image_screen.dart';
 import 'package:document_scanner/take_picture_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -82,13 +83,28 @@ class _PickImageScreenState extends State<PickImageScreen> {
     );
   }
 
-  Future pickImage() async {
+   pickImage() async {
     final pickedFile = await picker.getImage(source: ImageSource.gallery);
-
-    return File(pickedFile.path);
+    Navigator.of(context).pop();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditImageScreen(
+          image: File(pickedFile.path),
+        ),
+      ),
+    );
   }
 
-  takePhoto() {
-    Utils.showDialog(context, TakePictureScreen());
+  takePhoto() async{
+    final pickedFile = await picker.getImage(source: ImageSource.camera);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditImageScreen(
+          image: File(pickedFile.path),
+        ),
+      ),
+    );
   }
 }
