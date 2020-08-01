@@ -2,16 +2,22 @@ import 'package:document_scanner/clip_overlay_painter.dart';
 import 'package:flutter/material.dart';
 
 class ResizableWidget extends StatefulWidget {
-  ResizableWidget({this.child, this.width, this.height});
+  ResizableWidget(
+      {this.child,
+      this.width,
+      this.height,
+      this.minHeight = 0,
+      this.minWidth = 0});
   final double height;
   final double width;
+  final double minHeight, minWidth;
 
   final Widget child;
   @override
   _ResizableWidgetState createState() => _ResizableWidgetState();
 }
 
-const ballDiameter = 30.0;
+const ballDiameter = 24.0;
 
 class _ResizableWidgetState extends State<ResizableWidget> {
   double height, width;
@@ -39,19 +45,25 @@ class _ResizableWidgetState extends State<ResizableWidget> {
     setState(() {
       if (top < 0) {
         top = 0;
-      } else if (top > widget.height-height) {
-        top = widget.height-height;
+      } else if (top > widget.height - height) {
+        top = widget.height - height;
       }
       if (left < 0) {
         left = 0;
       } else if (left > widget.width - width) {
         left = widget.width - width;
       }
-      if(height>widget.height){
+      if (height > widget.height) {
         height = widget.height;
       }
-      if(width>widget.width){
+      if (width > widget.width) {
         width = widget.width;
+      }
+      if (height < widget.minHeight) {
+        height = widget.minHeight;
+      }
+      if (width < widget.minWidth) {
+        width = widget.minWidth;
       }
     });
   }
@@ -82,13 +94,11 @@ class _ResizableWidgetState extends State<ResizableWidget> {
               var mid = (dx + dy) / 2;
               var newHeight = height - 2 * mid;
               var newWidth = width - 2 * mid;
-              setState(() {
-                height = newHeight > 0 ? newHeight : 0;
-                width = newWidth > 0 ? newWidth : 0;
-                top = top + mid;
-                left = left + mid;
-                clampRectangle();
-              });
+              height = newHeight > 0 ? newHeight : 0;
+              width = newWidth > 0 ? newWidth : 0;
+              top = top + mid;
+              left = left + mid;
+              clampRectangle();
             },
           ),
         ),
@@ -99,11 +109,9 @@ class _ResizableWidgetState extends State<ResizableWidget> {
           child: ManipulatingBall(
             onDrag: (dx, dy) {
               var newHeight = height - dy;
-              setState(() {
-                height = newHeight > 0 ? newHeight : 0;
-                top = top + dy;
-                clampRectangle();
-              });
+              height = newHeight > 0 ? newHeight : 0;
+              top = top + dy;
+              clampRectangle();
             },
           ),
         ),
@@ -117,14 +125,11 @@ class _ResizableWidgetState extends State<ResizableWidget> {
 
               var newHeight = height + 2 * mid;
               var newWidth = width + 2 * mid;
-
-              setState(() {
-                height = newHeight > 0 ? newHeight : 0;
-                width = newWidth > 0 ? newWidth : 0;
-                top = top - mid;
-                left = left - mid;
-                clampRectangle();
-              });
+              height = newHeight > 0 ? newHeight : 0;
+              width = newWidth > 0 ? newWidth : 0;
+              top = top - mid;
+              left = left - mid;
+              clampRectangle();
             },
           ),
         ),
@@ -135,10 +140,7 @@ class _ResizableWidgetState extends State<ResizableWidget> {
           child: ManipulatingBall(
             onDrag: (dx, dy) {
               var newWidth = width + dx;
-
-              setState(() {
-                width = newWidth > 0 ? newWidth : 0;
-              });
+              width = newWidth > 0 ? newWidth : 0;
               clampRectangle();
             },
           ),
@@ -154,13 +156,11 @@ class _ResizableWidgetState extends State<ResizableWidget> {
               var newHeight = height + 2 * mid;
               var newWidth = width + 2 * mid;
 
-              setState(() {
-                height = newHeight > 0 ? newHeight : 0;
-                width = newWidth > 0 ? newWidth : 0;
-                top = top - mid;
-                left = left - mid;
-                clampRectangle();
-              });
+              height = newHeight > 0 ? newHeight : 0;
+              width = newWidth > 0 ? newWidth : 0;
+              top = top - mid;
+              left = left - mid;
+              clampRectangle();
             },
           ),
         ),
@@ -172,9 +172,7 @@ class _ResizableWidgetState extends State<ResizableWidget> {
             onDrag: (dx, dy) {
               var newHeight = height + dy;
 
-              setState(() {
-                height = newHeight > 0 ? newHeight : 0;
-              });
+              height = newHeight > 0 ? newHeight : 0;
               clampRectangle();
             },
           ),
@@ -190,13 +188,11 @@ class _ResizableWidgetState extends State<ResizableWidget> {
               var newHeight = height + 2 * mid;
               var newWidth = width + 2 * mid;
 
-              setState(() {
-                height = newHeight > 0 ? newHeight : 0;
-                width = newWidth > 0 ? newWidth : 0;
-                top = top - mid;
-                left = left - mid;
-                clampRectangle();
-              });
+              height = newHeight > 0 ? newHeight : 0;
+              width = newWidth > 0 ? newWidth : 0;
+              top = top - mid;
+              left = left - mid;
+              clampRectangle();
             },
           ),
         ),
@@ -208,11 +204,9 @@ class _ResizableWidgetState extends State<ResizableWidget> {
             onDrag: (dx, dy) {
               var newWidth = width - dx;
 
-              setState(() {
-                width = newWidth > 0 ? newWidth : 0;
-                left = left + dx;
-                clampRectangle();
-              });
+              width = newWidth > 0 ? newWidth : 0;
+              left = left + dx;
+              clampRectangle();
             },
           ),
         ),
@@ -221,12 +215,11 @@ class _ResizableWidgetState extends State<ResizableWidget> {
           top: top + height / 2 - ballDiameter / 2,
           left: left + width / 2 - ballDiameter / 2,
           child: ManipulatingBall(
+            center: true,
             onDrag: (dx, dy) {
-              setState(() {
-                top = top + dy;
-                left = left + dx;
-                clampRectangle();
-              });
+              top = top + dy;
+              left = left + dx;
+              clampRectangle();
             },
           ),
         ),
@@ -236,10 +229,10 @@ class _ResizableWidgetState extends State<ResizableWidget> {
 }
 
 class ManipulatingBall extends StatefulWidget {
-  ManipulatingBall({Key key, this.onDrag});
+  ManipulatingBall({Key key, this.onDrag, this.center = false});
 
   final Function onDrag;
-
+  final bool center;
   @override
   _ManipulatingBallState createState() => _ManipulatingBallState();
 }
@@ -271,9 +264,17 @@ class _ManipulatingBallState extends State<ManipulatingBall> {
       child: Container(
         width: ballDiameter,
         height: ballDiameter,
+        child: widget.center
+            ? Icon(
+                Icons.open_with,
+                size: ballDiameter,
+                color: Colors.blue.withOpacity(1),
+              )
+            : null,
         decoration: BoxDecoration(
-          color: Colors.blue.withOpacity(0.5),
-          shape: BoxShape.circle,
+          color:
+              widget.center ? Colors.transparent : Colors.blue.withOpacity(0.4),
+          shape: widget.center ? BoxShape.rectangle : BoxShape.circle,
         ),
       ),
     );

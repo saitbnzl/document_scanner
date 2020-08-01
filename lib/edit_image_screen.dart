@@ -73,6 +73,8 @@ class _EditImageScreenState extends State<EditImageScreen> {
                         Positioned.fill(
                           child: Center(
                             child: ResizableWidget(
+                              minHeight: 50,
+                              minWidth: 50,
                               width: _size.width,
                               height: _size.height,
                               child: Container(
