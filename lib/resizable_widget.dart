@@ -35,6 +35,27 @@ class _ResizableWidgetState extends State<ResizableWidget> {
     });
   }
 
+  clampRectangle() {
+    setState(() {
+      if (top < 0) {
+        top = 0;
+      } else if (top > widget.height-height) {
+        top = widget.height-height;
+      }
+      if (left < 0) {
+        left = 0;
+      } else if (left > widget.width - width) {
+        left = widget.width - width;
+      }
+      if(height>widget.height){
+        height = widget.height;
+      }
+      if(width>widget.width){
+        width = widget.width;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -44,7 +65,7 @@ class _ResizableWidgetState extends State<ResizableWidget> {
           left: 0,
           child: CustomPaint(
             painter: ClipOverlayPainter(
-              top: top,
+                top: top,
                 left: left,
                 height: height,
                 width: width,
@@ -61,12 +82,12 @@ class _ResizableWidgetState extends State<ResizableWidget> {
               var mid = (dx + dy) / 2;
               var newHeight = height - 2 * mid;
               var newWidth = width - 2 * mid;
-
               setState(() {
                 height = newHeight > 0 ? newHeight : 0;
                 width = newWidth > 0 ? newWidth : 0;
                 top = top + mid;
                 left = left + mid;
+                clampRectangle();
               });
             },
           ),
@@ -78,10 +99,10 @@ class _ResizableWidgetState extends State<ResizableWidget> {
           child: ManipulatingBall(
             onDrag: (dx, dy) {
               var newHeight = height - dy;
-
               setState(() {
                 height = newHeight > 0 ? newHeight : 0;
                 top = top + dy;
+                clampRectangle();
               });
             },
           ),
@@ -102,6 +123,7 @@ class _ResizableWidgetState extends State<ResizableWidget> {
                 width = newWidth > 0 ? newWidth : 0;
                 top = top - mid;
                 left = left - mid;
+                clampRectangle();
               });
             },
           ),
@@ -117,6 +139,7 @@ class _ResizableWidgetState extends State<ResizableWidget> {
               setState(() {
                 width = newWidth > 0 ? newWidth : 0;
               });
+              clampRectangle();
             },
           ),
         ),
@@ -136,6 +159,7 @@ class _ResizableWidgetState extends State<ResizableWidget> {
                 width = newWidth > 0 ? newWidth : 0;
                 top = top - mid;
                 left = left - mid;
+                clampRectangle();
               });
             },
           ),
@@ -151,6 +175,7 @@ class _ResizableWidgetState extends State<ResizableWidget> {
               setState(() {
                 height = newHeight > 0 ? newHeight : 0;
               });
+              clampRectangle();
             },
           ),
         ),
@@ -170,6 +195,7 @@ class _ResizableWidgetState extends State<ResizableWidget> {
                 width = newWidth > 0 ? newWidth : 0;
                 top = top - mid;
                 left = left - mid;
+                clampRectangle();
               });
             },
           ),
@@ -185,6 +211,7 @@ class _ResizableWidgetState extends State<ResizableWidget> {
               setState(() {
                 width = newWidth > 0 ? newWidth : 0;
                 left = left + dx;
+                clampRectangle();
               });
             },
           ),
@@ -198,6 +225,7 @@ class _ResizableWidgetState extends State<ResizableWidget> {
               setState(() {
                 top = top + dy;
                 left = left + dx;
+                clampRectangle();
               });
             },
           ),
