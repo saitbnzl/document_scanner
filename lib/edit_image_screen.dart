@@ -15,6 +15,17 @@ Future<imageLib.Image> processImage(File _imageFile) async {
   return _image;
 }
 
+Future<imageLib.Image> clearImage(File _imageFile) async {
+  Uint8List imageData = await _imageFile.readAsBytes();
+  imageLib.Image _image = imageLib.decodeImage(imageData);
+  return _image;
+}
+
+Uint8List computeEncodeJpg(imageLib.Image image) {
+  Uint8List data = imageLib.encodeJpg(image);
+  return data;
+}
+
 class EditImageScreen extends StatefulWidget {
   EditImageScreen({this.image});
   final File image;
@@ -30,6 +41,8 @@ class _EditImageScreenState extends State<EditImageScreen> {
   Size screenSize;
   GlobalKey<ResizableWidgetState> resizeState = GlobalKey();
   Size fittedSize;
+  bool inProgress = true;
+  bool effectsApplied = true;
 
   @override
   void initState() {
@@ -41,20 +54,72 @@ class _EditImageScreenState extends State<EditImageScreen> {
 
   init() async {
     _image = await compute(processImage, widget.image);
-    _imageData = imageLib.encodeJpg(_image);
+    _imageData = await compute(computeEncodeJpg, _image);
     screenSize = MediaQuery.of(context).size;
     fittedSize = applyBoxFit(
             BoxFit.contain,
             Size(_image.width.toDouble(), _image.height.toDouble()),
             Size(screenSize.width, screenSize.height * .8))
         .destination;
-    setState(() {});
+    setState(() {
+      inProgress = false;
+    });
+  }
+
+  applyEffects() async {
+    ResizableWidgetState resizableWidgetState = resizeState.currentState;
+    setState(() {
+      inProgress = true;
+    });
+    _image = await compute(processImage, widget.image);
+    _imageData = await compute(computeEncodeJpg, _image);
+    fittedSize = applyBoxFit(
+        BoxFit.contain,
+        Size(_image.width.toDouble(), _image.height.toDouble()),
+        Size(screenSize.width, screenSize.height * .8))
+        .destination;
+    resizableWidgetState.top = 0;
+    resizableWidgetState.left = 0;
+    resizableWidgetState.width = fittedSize.width;
+    resizableWidgetState.height = fittedSize.height;
+    setState(() {
+      inProgress = false;
+      effectsApplied = true;
+    });
+  }
+
+  clear() async {
+    ResizableWidgetState resizableWidgetState = resizeState.currentState;
+    setState(() {
+      inProgress = true;
+    });
+    _image = await compute(clearImage, widget.image);
+    _imageData = await compute(computeEncodeJpg, _image);
+    fittedSize = applyBoxFit(
+            BoxFit.contain,
+            Size(_image.width.toDouble(), _image.height.toDouble()),
+            Size(screenSize.width, screenSize.height * .8))
+        .destination;
+    resizableWidgetState.top = 0;
+    resizableWidgetState.left = 0;
+    resizableWidgetState.width = fittedSize.width;
+    resizableWidgetState.height = fittedSize.height;
+    setState(() {
+      inProgress = false;
+      effectsApplied = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return _imageData == null
-        ? Center(child: Container(width: 30,height: 30,child: CircularProgressIndicator(strokeWidth: 2,)))
+    return inProgress
+        ? Center(
+            child: Container(
+                width: 30,
+                height: 30,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                )))
         : WillPopScope(
             onWillPop: () async {
               return true;
@@ -94,46 +159,72 @@ class _EditImageScreenState extends State<EditImageScreen> {
                       ],
                     ),
                   ),
-                  Row(
-                    children: <Widget>[
-                      MaterialButton(
-                        onPressed: () {
-                          ResizableWidgetState resizableWidgetState =
-                              resizeState.currentState;
-                          setState(() {
-                            final scale = _image.width / fittedSize.width;
-                            _image = imageLib.copyCrop(
-                                _image,
-                                (resizableWidgetState.left * scale).toInt(),
-                                (resizableWidgetState.top * scale).toInt(),
-                                (resizableWidgetState.width * scale).toInt(),
-                                (resizableWidgetState.height * scale).toInt());
+                  Container(
+                    color: Colors.grey.withOpacity(.1),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        MaterialButton(
+                          onPressed: () {
+                            ResizableWidgetState resizableWidgetState =
+                                resizeState.currentState;
+                            setState(() {
+                              final scale = _image.width / fittedSize.width;
+                              _image = imageLib.copyCrop(
+                                  _image,
+                                  (resizableWidgetState.left * scale).toInt(),
+                                  (resizableWidgetState.top * scale).toInt(),
+                                  (resizableWidgetState.width * scale).toInt(),
+                                  (resizableWidgetState.height * scale).toInt());
 
-                            _imageData = imageLib.encodeJpg(_image);
+                              _imageData = imageLib.encodeJpg(_image);
 
-                            resizableWidgetState.top = 0;
-                            resizableWidgetState.left = 0;
-                            fittedSize = applyBoxFit(
-                                    BoxFit.contain,
-                                    Size(resizableWidgetState.width,
-                                        resizableWidgetState.height),
-                                    Size(screenSize.width,
-                                        screenSize.height * .8))
-                                .destination;
-                            resizableWidgetState.width = fittedSize.width;
-                            resizableWidgetState.height = fittedSize.height;
-                          });
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(10),
-                          color: Colors.red,
-                          child: Text(
-                            "Crop",
-                            style: TextStyle(color: Colors.white, fontSize: 16),
+                              resizableWidgetState.top = 0;
+                              resizableWidgetState.left = 0;
+                              fittedSize = applyBoxFit(
+                                      BoxFit.contain,
+                                      Size(resizableWidgetState.width,
+                                          resizableWidgetState.height),
+                                      Size(screenSize.width,
+                                          screenSize.height * .8))
+                                  .destination;
+                              resizableWidgetState.width = fittedSize.width;
+                              resizableWidgetState.height = fittedSize.height;
+                            });
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 5),
+                            width: 96,
+                            alignment: Alignment.center,
+                            color: Colors.grey.withOpacity(.5),
+                            child: Text(
+                              "Crop",
+                              style: TextStyle(color: Colors.white, fontSize: 16),
+                            ),
                           ),
                         ),
-                      )
-                    ],
+                        MaterialButton(
+                          onPressed: () {
+                            if (effectsApplied){
+                              clear();
+                            }else{
+                              applyEffects();
+                            }
+                          },
+                          child: Container(
+                            width: 96,
+                            padding: EdgeInsets.symmetric(vertical: 5),
+                            alignment: Alignment.center,
+                            color: Colors.grey.withOpacity(.5),
+                            child: Text(
+                              effectsApplied?"Clear All":"Scan",
+                              style: TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   )
                 ],
               ),
