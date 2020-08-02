@@ -3,23 +3,24 @@ import 'package:flutter/material.dart';
 
 class ResizableWidget extends StatefulWidget {
   ResizableWidget(
-      {this.child,
+      {Key key,
+      this.child,
       this.width,
       this.height,
       this.minHeight = 0,
-      this.minWidth = 0});
+      this.minWidth = 0})
+      : super(key: key);
   final double height;
   final double width;
   final double minHeight, minWidth;
-
   final Widget child;
   @override
-  _ResizableWidgetState createState() => _ResizableWidgetState();
+  ResizableWidgetState createState() => ResizableWidgetState();
 }
 
 const ballDiameter = 24.0;
 
-class _ResizableWidgetState extends State<ResizableWidget> {
+class ResizableWidgetState extends State<ResizableWidget> {
   double height, width;
   double top = 0;
   double left = 0;
@@ -70,160 +71,165 @@ class _ResizableWidgetState extends State<ResizableWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        Positioned(
-          top: 0,
-          left: 0,
-          child: CustomPaint(
-            painter: ClipOverlayPainter(
-                top: top,
-                left: left,
-                height: height,
-                width: width,
-                outerHeight: widget.height,
-                outerWidth: widget.width),
+    return Container(
+      width: widget.width,
+      height: widget.height,
+      child: Stack(
+        fit: StackFit.loose,
+        children: <Widget>[
+          Positioned(
+            top: 0,
+            left: 0,
+            child: CustomPaint(
+              painter: ClipOverlayPainter(
+                  top: top,
+                  left: left,
+                  height: height,
+                  width: width,
+                  outerHeight: widget.height,
+                  outerWidth: widget.width),
+            ),
           ),
-        ),
-        // top left
-        Positioned(
-          top: top - ballDiameter / 2,
-          left: left - ballDiameter / 2,
-          child: ManipulatingBall(
-            onDrag: (dx, dy) {
-              var mid = (dx + dy) / 2;
-              var newHeight = height - 2 * mid;
-              var newWidth = width - 2 * mid;
-              height = newHeight > 0 ? newHeight : 0;
-              width = newWidth > 0 ? newWidth : 0;
-              top = top + mid;
-              left = left + mid;
-              clampRectangle();
-            },
+          // top left
+          Positioned(
+            top: top - ballDiameter / 2,
+            left: left - ballDiameter / 2,
+            child: ManipulatingBall(
+              onDrag: (dx, dy) {
+                var mid = (dx + dy) / 2;
+                var newHeight = height - 2 * mid;
+                var newWidth = width - 2 * mid;
+                height = newHeight > 0 ? newHeight : 0;
+                width = newWidth > 0 ? newWidth : 0;
+                top = top + mid;
+                left = left + mid;
+                clampRectangle();
+              },
+            ),
           ),
-        ),
-        // top middle
-        Positioned(
-          top: top - ballDiameter / 2,
-          left: left + width / 2 - ballDiameter / 2,
-          child: ManipulatingBall(
-            onDrag: (dx, dy) {
-              var newHeight = height - dy;
-              height = newHeight > 0 ? newHeight : 0;
-              top = top + dy;
-              clampRectangle();
-            },
+          // top middle
+          Positioned(
+            top: top - ballDiameter / 2,
+            left: left + width / 2 - ballDiameter / 2,
+            child: ManipulatingBall(
+              onDrag: (dx, dy) {
+                var newHeight = height - dy;
+                height = newHeight > 0 ? newHeight : 0;
+                top = top + dy;
+                clampRectangle();
+              },
+            ),
           ),
-        ),
-        // top right
-        Positioned(
-          top: top - ballDiameter / 2,
-          left: left + width - ballDiameter / 2,
-          child: ManipulatingBall(
-            onDrag: (dx, dy) {
-              var mid = (dx + (dy * -1)) / 2;
+          // top right
+          Positioned(
+            top: top - ballDiameter / 2,
+            left: left + width - ballDiameter / 2,
+            child: ManipulatingBall(
+              onDrag: (dx, dy) {
+                var mid = (dx + (dy * -1)) / 2;
 
-              var newHeight = height + 2 * mid;
-              var newWidth = width + 2 * mid;
-              height = newHeight > 0 ? newHeight : 0;
-              width = newWidth > 0 ? newWidth : 0;
-              top = top - mid;
-              left = left - mid;
-              clampRectangle();
-            },
+                var newHeight = height + 2 * mid;
+                var newWidth = width + 2 * mid;
+                height = newHeight > 0 ? newHeight : 0;
+                width = newWidth > 0 ? newWidth : 0;
+                top = top - mid;
+                left = left - mid;
+                clampRectangle();
+              },
+            ),
           ),
-        ),
-        // center right
-        Positioned(
-          top: top + height / 2 - ballDiameter / 2,
-          left: left + width - ballDiameter / 2,
-          child: ManipulatingBall(
-            onDrag: (dx, dy) {
-              var newWidth = width + dx;
-              width = newWidth > 0 ? newWidth : 0;
-              clampRectangle();
-            },
+          // center right
+          Positioned(
+            top: top + height / 2 - ballDiameter / 2,
+            left: left + width - ballDiameter / 2,
+            child: ManipulatingBall(
+              onDrag: (dx, dy) {
+                var newWidth = width + dx;
+                width = newWidth > 0 ? newWidth : 0;
+                clampRectangle();
+              },
+            ),
           ),
-        ),
-        // bottom right
-        Positioned(
-          top: top + height - ballDiameter / 2,
-          left: left + width - ballDiameter / 2,
-          child: ManipulatingBall(
-            onDrag: (dx, dy) {
-              var mid = (dx + dy) / 2;
+          // bottom right
+          Positioned(
+            top: top + height - ballDiameter / 2,
+            left: left + width - ballDiameter / 2,
+            child: ManipulatingBall(
+              onDrag: (dx, dy) {
+                var mid = (dx + dy) / 2;
 
-              var newHeight = height + 2 * mid;
-              var newWidth = width + 2 * mid;
+                var newHeight = height + 2 * mid;
+                var newWidth = width + 2 * mid;
 
-              height = newHeight > 0 ? newHeight : 0;
-              width = newWidth > 0 ? newWidth : 0;
-              top = top - mid;
-              left = left - mid;
-              clampRectangle();
-            },
+                height = newHeight > 0 ? newHeight : 0;
+                width = newWidth > 0 ? newWidth : 0;
+                top = top - mid;
+                left = left - mid;
+                clampRectangle();
+              },
+            ),
           ),
-        ),
-        // bottom center
-        Positioned(
-          top: top + height - ballDiameter / 2,
-          left: left + width / 2 - ballDiameter / 2,
-          child: ManipulatingBall(
-            onDrag: (dx, dy) {
-              var newHeight = height + dy;
+          // bottom center
+          Positioned(
+            top: top + height - ballDiameter / 2,
+            left: left + width / 2 - ballDiameter / 2,
+            child: ManipulatingBall(
+              onDrag: (dx, dy) {
+                var newHeight = height + dy;
 
-              height = newHeight > 0 ? newHeight : 0;
-              clampRectangle();
-            },
+                height = newHeight > 0 ? newHeight : 0;
+                clampRectangle();
+              },
+            ),
           ),
-        ),
-        // bottom left
-        Positioned(
-          top: top + height - ballDiameter / 2,
-          left: left - ballDiameter / 2,
-          child: ManipulatingBall(
-            onDrag: (dx, dy) {
-              var mid = ((dx * -1) + dy) / 2;
+          // bottom left
+          Positioned(
+            top: top + height - ballDiameter / 2,
+            left: left - ballDiameter / 2,
+            child: ManipulatingBall(
+              onDrag: (dx, dy) {
+                var mid = ((dx * -1) + dy) / 2;
 
-              var newHeight = height + 2 * mid;
-              var newWidth = width + 2 * mid;
+                var newHeight = height + 2 * mid;
+                var newWidth = width + 2 * mid;
 
-              height = newHeight > 0 ? newHeight : 0;
-              width = newWidth > 0 ? newWidth : 0;
-              top = top - mid;
-              left = left - mid;
-              clampRectangle();
-            },
+                height = newHeight > 0 ? newHeight : 0;
+                width = newWidth > 0 ? newWidth : 0;
+                top = top - mid;
+                left = left - mid;
+                clampRectangle();
+              },
+            ),
           ),
-        ),
-        //left center
-        Positioned(
-          top: top + height / 2 - ballDiameter / 2,
-          left: left - ballDiameter / 2,
-          child: ManipulatingBall(
-            onDrag: (dx, dy) {
-              var newWidth = width - dx;
+          //left center
+          Positioned(
+            top: top + height / 2 - ballDiameter / 2,
+            left: left - ballDiameter / 2,
+            child: ManipulatingBall(
+              onDrag: (dx, dy) {
+                var newWidth = width - dx;
 
-              width = newWidth > 0 ? newWidth : 0;
-              left = left + dx;
-              clampRectangle();
-            },
+                width = newWidth > 0 ? newWidth : 0;
+                left = left + dx;
+                clampRectangle();
+              },
+            ),
           ),
-        ),
-        // center center
-        Positioned(
-          top: top + height / 2 - ballDiameter / 2,
-          left: left + width / 2 - ballDiameter / 2,
-          child: ManipulatingBall(
-            center: true,
-            onDrag: (dx, dy) {
-              top = top + dy;
-              left = left + dx;
-              clampRectangle();
-            },
+          // center center
+          Positioned(
+            top: top + height / 2 - ballDiameter / 2,
+            left: left + width / 2 - ballDiameter / 2,
+            child: ManipulatingBall(
+              center: true,
+              onDrag: (dx, dy) {
+                top = top + dy;
+                left = left + dx;
+                clampRectangle();
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
