@@ -18,7 +18,7 @@ class ResizableWidget extends StatefulWidget {
   ResizableWidgetState createState() => ResizableWidgetState();
 }
 
-const ballDiameter = 24.0;
+const ballDiameter = 48.0;
 
 class ResizableWidgetState extends State<ResizableWidget> {
   double height, width;
@@ -268,19 +268,26 @@ class _ManipulatingBallState extends State<ManipulatingBall> {
       onPanStart: _handleDrag,
       onPanUpdate: _handleUpdate,
       child: Container(
+        alignment: Alignment.center,
         width: ballDiameter,
         height: ballDiameter,
-        child: widget.center
-            ? Icon(
-                Icons.open_with,
-                size: ballDiameter,
-                color: Colors.blue.withOpacity(1),
-              )
-            : null,
-        decoration: BoxDecoration(
-          color:
-              widget.center ? Colors.transparent : Colors.blue.withOpacity(0.4),
-          shape: widget.center ? BoxShape.rectangle : BoxShape.circle,
+        color: Colors.transparent,
+        child: Container(
+          width: ballDiameter - 24,
+          height: ballDiameter - 24,
+          child: widget.center
+              ? Icon(
+                  Icons.open_with,
+                  size: ballDiameter - 24,
+                  color: Colors.blue.withOpacity(1),
+                )
+              : null,
+          decoration: BoxDecoration(
+            color: widget.center
+                ? Colors.transparent
+                : Colors.blue.withOpacity(0.4),
+            shape: widget.center ? BoxShape.rectangle : BoxShape.circle,
+          ),
         ),
       ),
     );

@@ -10,9 +10,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:image/image.dart' as imageLib;
 import 'package:flutter/foundation.dart';
 
-Future<imageLib.Image> processImage(File _imageFile) async {
-  Uint8List imageData = await _imageFile.readAsBytes();
-  imageLib.Image _image = imageLib.decodeJpg(imageData);
+Future<imageLib.Image> processImage(imageLib.Image _image) async {
   imageLib.grayscale(_image);
   imageLib.contrast(_image, 125);
   return _image;
@@ -29,6 +27,11 @@ Uint8List computeEncodeJpg(imageLib.Image image) {
   return data;
 }
 
+imageLib.Image computeDecodeJpg(Uint8List _data) {
+  imageLib.Image data = imageLib.decodeJpg(_data);
+  return data;
+}
+
 class EditImageScreen extends StatefulWidget {
   EditImageScreen({this.image});
   final File image;
@@ -38,8 +41,8 @@ class EditImageScreen extends StatefulWidget {
 
 class _EditImageScreenState extends State<EditImageScreen> {
   DocumentScanner documentScanner = DocumentScanner();
-  imageLib.Image _image;
-  Uint8List _imageData;
+  imageLib.Image _image, _originalImage;
+  Uint8List _imageData, _originalImageData;
   GlobalKey imageKey = GlobalKey();
   Size screenSize;
   GlobalKey<ResizableWidgetState> resizeState = GlobalKey();
@@ -75,7 +78,8 @@ class _EditImageScreenState extends State<EditImageScreen> {
   }
 
   init() async {
-    _image = await compute(processImage, widget.image);
+    Uint8List imageData = await widget.image.readAsBytes();
+    _image =  await compute(computeDecodeJpg,imageData);
 
     Map<String, IfdTag> exif =
         await readExifFromBytes(await widget.image.readAsBytes());
@@ -87,7 +91,12 @@ class _EditImageScreenState extends State<EditImageScreen> {
     if (orientation != null && orientation != 1) {
       _image = bakeOrientation(orientation, _image);
     }
-    _imageData = imageLib.encodeJpg(_image);
+    _originalImageData = await compute(computeEncodeJpg,_image);
+
+    _originalImage = _image;
+
+    _image = await compute(processImage, _image);
+    _imageData = await compute(computeEncodeJpg,_image);
 
     screenSize = MediaQuery.of(context).size;
     fittedSize = applyBoxFit(
@@ -106,7 +115,7 @@ class _EditImageScreenState extends State<EditImageScreen> {
     setState(() {
       inProgress = true;
     });
-    _image = await compute(processImage, widget.image);
+    _image = await compute(processImage, _image);
     _imageData = await compute(computeEncodeJpg, _image);
     fittedSize = applyBoxFit(
             BoxFit.contain,
@@ -128,8 +137,9 @@ class _EditImageScreenState extends State<EditImageScreen> {
     setState(() {
       inProgress = true;
     });
-    _image = await compute(clearImage, widget.image);
-    _imageData = await compute(computeEncodeJpg, _image);
+    _image = _originalImage;
+    _imageData = _originalImageData;
+
     fittedSize = applyBoxFit(
             BoxFit.contain,
             Size(_image.width.toDouble(), _image.height.toDouble()),
