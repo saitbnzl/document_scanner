@@ -1,5 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:document_scanner/document_scanner.dart';
 import 'package:flutter/material.dart';
-import 'package:document_scanner/image_picker_modal.dart';
 
 void main() {
   runApp(MyApp());
@@ -29,11 +32,19 @@ class _MyAppState extends State<MyApp> {
 }
 
 class ScanButton extends StatelessWidget {
+  final DocumentScanner _documentScanner = DocumentScanner();
+
   @override
   Widget build(BuildContext context) {
     return MaterialButton(
       onPressed: () {
-        ImagePickerModal.showForAndroid(context);
+        if (Platform.isAndroid) {
+          _documentScanner.showMaterialPopup(context,
+              onCompleted: (Uint8List imageData) {});
+        } else if (Platform.isIOS) {
+          _documentScanner.showCupertinoPopup(context,
+              onCompleted: (Uint8List imageData) {});
+        }
       },
       child: Container(
         padding: EdgeInsets.all(10),
