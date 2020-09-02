@@ -16,7 +16,8 @@ dependencies:
   path_provider: ^1.6.11
   modal_bottom_sheet: ^0.2.0+1
   interpolate: ^1.0.2+2
-  exif: 1.0.3
+  exif: ^1.0.3
+  image: ^2.1.14
 
 dev_dependencies:
   flutter_test:

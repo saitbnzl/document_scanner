@@ -5,6 +5,7 @@ class ResizableWidget extends StatefulWidget {
   ResizableWidget(
       {Key key,
       this.child,
+      this.onChange,
       this.width,
       this.height,
       this.minHeight = 0,
@@ -14,6 +15,8 @@ class ResizableWidget extends StatefulWidget {
   final double width;
   final double minHeight, minWidth;
   final Widget child;
+  final Function onChange;
+
   @override
   ResizableWidgetState createState() => ResizableWidgetState();
 }
@@ -24,11 +27,17 @@ class ResizableWidgetState extends State<ResizableWidget> {
   double height, width;
   double top = 0;
   double left = 0;
+  bool showHint = true;
 
   @override
   void initState() {
     height = widget.height;
     width = widget.width;
+    Future.delayed(Duration(seconds: 3), () {
+      setState(() {
+        showHint = false;
+      });
+    });
     super.initState();
   }
 
@@ -43,6 +52,7 @@ class ResizableWidgetState extends State<ResizableWidget> {
   }
 
   clampRectangle() {
+    widget.onChange();
     setState(() {
       if (top < 0) {
         top = 0;
@@ -228,6 +238,49 @@ class ResizableWidgetState extends State<ResizableWidget> {
               },
             ),
           ),
+          Positioned.fill(
+            child: AnimatedOpacity(
+              opacity: showHint ? 1 : 0,
+              duration: Duration(milliseconds: 500),
+              child: IgnorePointer(
+                ignoring: !showHint,
+                child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        showHint = false;
+                      });
+                    },
+                    child: Container(
+                      color: Colors.black.withOpacity(.5),
+                      alignment: Alignment.center,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Resmi kırpmak için mavi noktaları hareket ettirerek resmin sınırlarını belirleyin.",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500),
+                              textAlign: TextAlign.center,
+                            ),
+                            Text(
+                              "Daha sonra aşağıdaki \"Kırp\" butonuna dokunun.",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    )),
+              ),
+            ),
+          )
         ],
       ),
     );
