@@ -40,10 +40,10 @@ class ScanButton extends StatelessWidget {
       onPressed: () {
         if (Platform.isAndroid) {
           _documentScanner.showMaterialPopup(context,
-              onCompleted: (Uint8List imageData) {});
+              onCompleted: (Uint8List imageData,Size _) {});
         } else if (Platform.isIOS) {
           _documentScanner.showCupertinoPopup(context,
-              onCompleted: (Uint8List imageData) {});
+              onCompleted: (Uint8List imageData, Size _) {});
         }
       },
       child: Container(

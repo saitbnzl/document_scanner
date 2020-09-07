@@ -34,9 +34,11 @@ class ResizableWidgetState extends State<ResizableWidget> {
     height = widget.height;
     width = widget.width;
     Future.delayed(Duration(seconds: 3), () {
-      setState(() {
-        showHint = false;
-      });
+      if(mounted){
+        setState(() {
+          showHint = false;
+        });
+      }
     });
     super.initState();
   }

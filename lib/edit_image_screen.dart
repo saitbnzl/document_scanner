@@ -10,8 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:image/image.dart' as imageLib;
 import 'package:flutter/foundation.dart';
+import 'package:async/async.dart';
+import 'package:image_picker/image_picker.dart';
 
-final encodingQuality = 80;
+const encodingQuality = 80;
 
 Future<imageLib.Image> processImage(imageLib.Image _image) async {
   imageLib.grayscale(_image);
@@ -25,8 +27,9 @@ Future<imageLib.Image> clearImage(File _imageFile) async {
   return _image;
 }
 
-Uint8List computeEncodeJpg(imageLib.Image image) {
-  Uint8List data = imageLib.encodeJpg(image, quality: encodingQuality);
+Uint8List computeEncodeJpg(Map map) {
+  Uint8List data = imageLib.encodeJpg(map["image"],
+      quality: map.containsKey("quality") ? map["quality"] : encodingQuality);
   return data;
 }
 
@@ -44,33 +47,82 @@ class EditImageScreen extends StatefulWidget {
   _EditImageScreenState createState() => _EditImageScreenState();
 }
 
-class _EditImageScreenState extends State<EditImageScreen> {
+class _EditImageScreenState extends State<EditImageScreen>
+    with WidgetsBindingObserver {
   DocumentScanner documentScanner = DocumentScanner();
-  imageLib.Image _image, _originalImage;
-  Uint8List _imageData, _originalImageData;
+  imageLib.Image _image;
+  Uint8List _imageData;
   GlobalKey imageKey = GlobalKey();
   Size screenSize;
   GlobalKey<ResizableWidgetState> resizeState = GlobalKey();
   Size fittedSize;
   bool inProgress = true;
-  bool effectsApplied = true;
+  bool effectsApplied = false;
   bool shouldCrop = false;
+  CancelableOperation initOp;
 
   @override
   void initState() {
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
-      init();
+      initOp = CancelableOperation.fromFuture(
+        init(),
+        onCancel: () => {debugPrint('onCancel')},
+      );
     });
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
   @override
   void dispose() {
+    initOp.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _imageData = null;
-    _originalImageData = null;
     _image = null;
-    _originalImage = null;
     super.dispose();
+  }
+
+  @override
+  void didHaveMemoryPressure() {
+    AlertDialog alert = AlertDialog(
+      title: Text("Hata"),
+      content: Text("Düşük bellek tespit edildi. Uygulamayı kapatıp açmayı deneyin."),
+      actions: [
+        FlatButton(
+          child: Text("Tamam"),
+          onPressed: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          },
+        )
+      ],
+    );
+    CupertinoAlertDialog cupertinoAlertDialog = CupertinoAlertDialog(
+      title: Text("Hata"),
+      content: Text("Düşük bellek tespit edildi. Daha sonra tekrar deneyiniz."),
+      actions: [
+        CupertinoButton(
+          child: Text("Tamam"),
+          onPressed: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          },
+        )
+      ],
+    );
+    if (Platform.isAndroid) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return alert;
+          });
+    } else {
+      showCupertinoDialog(
+          context: context,
+          builder: (context) {
+            return cupertinoAlertDialog;
+          });
+    }
   }
 
   bakeOrientation(int orientation, imageLib.Image _image) {
@@ -102,9 +154,7 @@ class _EditImageScreenState extends State<EditImageScreen> {
     File preferredFile = file == null ? widget.image : file;
     _imageData = await preferredFile.readAsBytes();
     _image = imageLib.decodeImage(_imageData);
-
-    Map<String, IfdTag> exif =
-        await readExifFromBytes(_imageData);
+    Map<String, IfdTag> exif = await readExifFromBytes(_imageData);
     final orientationVal = exif == null
         ? null
         : exif.values
@@ -114,8 +164,14 @@ class _EditImageScreenState extends State<EditImageScreen> {
       _image = bakeOrientation(orientation, _image);
     }
 
-    _image = await compute(processImage, _image);
-    _imageData = await compute(computeEncodeJpg, _image);
+    //_image = await compute(processImage, _image);
+    _imageData = await compute(computeEncodeJpg, {"image": _image});
+    bool isSizeOverLimit = ((_imageData.lengthInBytes / 1000000) > 3.99);
+    if (isSizeOverLimit) {
+      double scaleFactor = 4 / (_imageData.lengthInBytes / 1000000);
+      _imageData = await compute(computeEncodeJpg,
+          {"image": _image, "quality": (encodingQuality * scaleFactor).toInt()});
+    }
 
     screenSize = MediaQuery.of(this.context).size;
     fittedSize = applyBoxFit(
@@ -124,9 +180,11 @@ class _EditImageScreenState extends State<EditImageScreen> {
             Size(screenSize.width, screenSize.height * .8))
         .destination;
 
-    setState(() {
-      inProgress = false;
-    });
+    if (mounted) {
+      setState(() {
+        inProgress = false;
+      });
+    }
   }
 
   applyEffects() async {
@@ -136,7 +194,7 @@ class _EditImageScreenState extends State<EditImageScreen> {
     });
 
     _image = await compute(processImage, _image);
-    _imageData = await compute(computeEncodeJpg, _image);
+    _imageData = await compute(computeEncodeJpg, {"image": _image});
 
     fittedSize = applyBoxFit(
             BoxFit.contain,
@@ -158,24 +216,20 @@ class _EditImageScreenState extends State<EditImageScreen> {
     setState(() {
       inProgress = true;
     });
-    if (_originalImageData == null) {
-      _image = imageLib.decodeImage(widget.image.readAsBytesSync());
-      Map<String, IfdTag> exif =
-          await readExifFromBytes(await widget.image.readAsBytes());
-      final orientationVal = exif == null
-          ? null
-          : exif.values
-              .firstWhere((element) => element.tag == 274, orElse: () => null);
-      int orientation = orientationVal?.values?.first;
-      if (orientation != null && orientation != 1) {
-        _image = bakeOrientation(orientation, _image);
-      }
-      _originalImageData = await compute(computeEncodeJpg, _image);
-      _originalImage = _image;
+
+    _image = imageLib.decodeImage(widget.image.readAsBytesSync());
+    Map<String, IfdTag> exif =
+        await readExifFromBytes(await widget.image.readAsBytes());
+    final orientationVal = exif == null
+        ? null
+        : exif.values
+            .firstWhere((element) => element.tag == 274, orElse: () => null);
+    int orientation = orientationVal?.values?.first;
+    if (orientation != null && orientation != 1) {
+      _image = bakeOrientation(orientation, _image);
     }
 
-    _image = _originalImage;
-    _imageData = _originalImageData;
+    _imageData = await compute(computeEncodeJpg, {"image": _image});
 
     fittedSize = applyBoxFit(
             BoxFit.contain,
@@ -269,8 +323,12 @@ class _EditImageScreenState extends State<EditImageScreen> {
                             child: Image.memory(
                               _imageData,
                               key: imageKey,
-                              width: _image.width.toDouble(),
-                              height: _image.height.toDouble(),
+                              width: fittedSize.width,
+                              height: fittedSize.height,
+                              cacheWidth: fittedSize.width.toInt(),
+                              cacheHeight: fittedSize.height.toInt(),
+                              filterQuality: FilterQuality.low,
+                              scale: 1,
                               fit: BoxFit.contain,
                             ),
                           ),
@@ -393,11 +451,11 @@ class _EditImageScreenState extends State<EditImageScreen> {
                             if (shouldCrop) {
                               crop();
                             } else {
-                              if ((_imageData.lengthInBytes / 1000000) >= 2.0) {
+                              if ((_imageData.lengthInBytes / 1000000) > 3.99) {
                                 AlertDialog alert = AlertDialog(
                                   title: Text("Hata"),
                                   content: Text(
-                                      "Dosya boyutu en fazla 2MB olmalıdır."),
+                                      "Dosya boyutu en fazla 4MB olmalıdır."),
                                   actions: [
                                     FlatButton(
                                       child: Text("Tamam"),
@@ -411,7 +469,7 @@ class _EditImageScreenState extends State<EditImageScreen> {
                                     CupertinoAlertDialog(
                                   title: Text("Hata"),
                                   content: Text(
-                                      "Dosya boyutu en fazla 2MB olmalıdır."),
+                                      "Dosya boyutu en fazla 4MB olmalıdır."),
                                   actions: [
                                     CupertinoButton(
                                       child: Text("Tamam"),
@@ -435,7 +493,7 @@ class _EditImageScreenState extends State<EditImageScreen> {
                                       });
                                 }
                               } else {
-                                widget.onCompleted(_imageData);
+                                widget.onCompleted(_imageData, fittedSize);
                                 Navigator.of(this.context).pop();
                               }
                             }
