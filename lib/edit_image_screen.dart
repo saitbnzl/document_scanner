@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:document_scanner/copy_rotate.dart';
 import 'package:document_scanner/document_scanner.dart';
 import 'package:document_scanner/flip.dart';
@@ -11,7 +12,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:image/image.dart' as imageLib;
 import 'package:flutter/foundation.dart';
 import 'package:async/async.dart';
-import 'package:image_picker/image_picker.dart';
 
 const encodingQuality = 80;
 
@@ -23,19 +23,16 @@ Future<imageLib.Image> processImage(imageLib.Image _image) async {
 
 Future<imageLib.Image> clearImage(File _imageFile) async {
   Uint8List imageData = await _imageFile.readAsBytes();
-  imageLib.Image _image = imageLib.decodeJpg(imageData);
-  return _image;
+  return imageLib.decodeJpg(imageData);
 }
 
 Uint8List computeEncodeJpg(Map map) {
-  Uint8List data = imageLib.encodeJpg(map["image"],
+  return imageLib.encodeJpg(map["image"],
       quality: map.containsKey("quality") ? map["quality"] : encodingQuality);
-  return data;
 }
 
 imageLib.Image computeDecodeJpg(Uint8List _data) {
-  imageLib.Image data = imageLib.decodeJpg(_data);
-  return data;
+  return imageLib.decodeJpg(_data);
 }
 
 class EditImageScreen extends StatefulWidget {
@@ -85,8 +82,9 @@ class _EditImageScreenState extends State<EditImageScreen>
   @override
   void didHaveMemoryPressure() {
     AlertDialog alert = AlertDialog(
-      title: Text("Hata"),
-      content: Text("Düşük bellek tespit edildi. Uygulamayı kapatıp açmayı deneyin."),
+      title: Text("Uyarı"),
+      content: Text(
+          "Düşük bellek tespit edildi. İşleminiz devam edemezse uygulamayı kapatıp yeniden açmayı deneyin."),
       actions: [
         FlatButton(
           child: Text("Tamam"),
@@ -99,7 +97,7 @@ class _EditImageScreenState extends State<EditImageScreen>
     );
     CupertinoAlertDialog cupertinoAlertDialog = CupertinoAlertDialog(
       title: Text("Hata"),
-      content: Text("Düşük bellek tespit edildi. Daha sonra tekrar deneyiniz."),
+      content: Text("Düşük bellek tespit edildi. İşleminiz devam edemezse uygulamayı kapatıp yeniden açmayı deneyin."),
       actions: [
         CupertinoButton(
           child: Text("Tamam"),
@@ -166,11 +164,16 @@ class _EditImageScreenState extends State<EditImageScreen>
 
     //_image = await compute(processImage, _image);
     _imageData = await compute(computeEncodeJpg, {"image": _image});
-    bool isSizeOverLimit = ((_imageData.lengthInBytes / 1000000) > 3.99);
+    bool isSizeOverLimit = ((_imageData.lengthInBytes / 1000000) > 2.99);
     if (isSizeOverLimit) {
-      double scaleFactor = 4 / (_imageData.lengthInBytes / 1000000);
-      _imageData = await compute(computeEncodeJpg,
-          {"image": _image, "quality": (encodingQuality * scaleFactor).toInt()});
+      double scaleFactor = 3 / (_imageData.lengthInBytes / 1000000);
+      if (scaleFactor < 0.3) {
+        scaleFactor = 0.3;
+      }
+      _imageData = await compute(computeEncodeJpg, {
+        "image": _image,
+        "quality": (encodingQuality * scaleFactor).toInt()
+      });
     }
 
     screenSize = MediaQuery.of(this.context).size;
@@ -230,6 +233,17 @@ class _EditImageScreenState extends State<EditImageScreen>
     }
 
     _imageData = await compute(computeEncodeJpg, {"image": _image});
+    bool isSizeOverLimit = ((_imageData.lengthInBytes / 1000000) > 2.99);
+    if (isSizeOverLimit) {
+      double scaleFactor = 3 / (_imageData.lengthInBytes / 1000000);
+      if (scaleFactor < 0.3) {
+        scaleFactor = 0.3;
+      }
+      _imageData = await compute(computeEncodeJpg, {
+        "image": _image,
+        "quality": (encodingQuality * scaleFactor).toInt()
+      });
+    }
 
     fittedSize = applyBoxFit(
             BoxFit.contain,
@@ -363,6 +377,7 @@ class _EditImageScreenState extends State<EditImageScreen>
                     Expanded(
                       flex: 4,
                       child: MaterialButton(
+                        padding: EdgeInsets.zero,
                         onPressed: () {
                           if (!inProgress) {
                             if (Platform.isAndroid) {
@@ -394,8 +409,9 @@ class _EditImageScreenState extends State<EditImageScreen>
                               Container(
                                 width: 1,
                               ),
-                              Text(
+                              AutoSizeText(
                                 "Yeni Resim",
+                                maxLines: 1,
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 14),
                               ),
@@ -407,6 +423,7 @@ class _EditImageScreenState extends State<EditImageScreen>
                     Expanded(
                       flex: 4,
                       child: MaterialButton(
+                        padding: EdgeInsets.zero,
                         onPressed: () {
                           if (!inProgress) {
                             if (effectsApplied) {
@@ -431,10 +448,11 @@ class _EditImageScreenState extends State<EditImageScreen>
                               Container(
                                 width: 1,
                               ),
-                              Text(
+                              AutoSizeText(
                                 effectsApplied
                                     ? "Orjinale Dön"
                                     : "Belgeyi Tara",
+                                maxLines: 1,
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 14),
                               ),
@@ -446,16 +464,17 @@ class _EditImageScreenState extends State<EditImageScreen>
                     Expanded(
                       flex: 3,
                       child: MaterialButton(
+                        padding: EdgeInsets.zero,
                         onPressed: () {
                           if (!inProgress) {
                             if (shouldCrop) {
                               crop();
                             } else {
-                              if ((_imageData.lengthInBytes / 1000000) > 3.99) {
+                              if ((_imageData.lengthInBytes / 1000000) > 2.99) {
                                 AlertDialog alert = AlertDialog(
                                   title: Text("Hata"),
                                   content: Text(
-                                      "Dosya boyutu en fazla 4MB olmalıdır."),
+                                      "Dosya boyutu en fazla 3MB olmalıdır."),
                                   actions: [
                                     FlatButton(
                                       child: Text("Tamam"),
@@ -469,7 +488,7 @@ class _EditImageScreenState extends State<EditImageScreen>
                                     CupertinoAlertDialog(
                                   title: Text("Hata"),
                                   content: Text(
-                                      "Dosya boyutu en fazla 4MB olmalıdır."),
+                                      "Dosya boyutu en fazla 3MB olmalıdır."),
                                   actions: [
                                     CupertinoButton(
                                       child: Text("Tamam"),
@@ -510,8 +529,9 @@ class _EditImageScreenState extends State<EditImageScreen>
                               Container(
                                 width: 1,
                               ),
-                              Text(
+                              AutoSizeText(
                                 shouldCrop ? "Kırp" : "Tamam",
+                                maxLines: 1,
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 14),
                               ),

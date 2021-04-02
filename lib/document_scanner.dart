@@ -10,9 +10,7 @@ import 'package:image_picker/image_picker.dart';
 
 Future<PickedFile> computePickFile(ImageSource imageSource) async {
   final picker = ImagePicker();
-  final pickedFile = await picker.getImage(
-      source: imageSource, imageQuality: 80, maxWidth: 3840, maxHeight: 3840);
-  return pickedFile;
+  return await picker.getImage(source: imageSource);
 }
 
 class DocumentScanner {
@@ -39,25 +37,45 @@ class DocumentScanner {
   pickImage(context, {Function onCompleted, bool noEdit = false}) async {
     Utils.showDialog(
         context,
-        AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Center(
-                  child: Container(
-                      width: 30,
-                      height: 30,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                      ))),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text("Lütfen bekleyiniz..."),
+        Platform.isAndroid
+            ? AlertDialog(
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Center(
+                        child: Container(
+                            width: 30,
+                            height: 30,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ))),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text("Lütfen bekleyiniz..."),
+                    )
+                  ],
+                ),
               )
-            ],
-          ),
-        ));
+            : CupertinoAlertDialog(
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Center(
+                        child: Container(
+                            width: 30,
+                            height: 30,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ))),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text("Lütfen bekleyiniz..."),
+                    )
+                  ],
+                ),
+              ));
     final pickedFile = await computePickFile(ImageSource.gallery);
     Navigator.of(context).pop();
     Navigator.of(context).pop();
