@@ -5,15 +5,14 @@ author:
 homepage:
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
-  flutter: ">=1.10.0"
+  sdk: ">=2.10.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   camera: ^0.5.8+2
-  image_picker: ^0.6.7+21
-  path_provider: ^1.6.11
+  image_picker: ^0.7.4
+  path_provider: ^2.0.1
   modal_bottom_sheet: ^0.2.0+1
   interpolate: ^1.0.2+2
   exif: ^1.0.3
