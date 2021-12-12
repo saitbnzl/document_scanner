@@ -13,7 +13,7 @@ import 'package:image/image.dart' as imageLib;
 import 'package:flutter/foundation.dart';
 import 'package:async/async.dart';
 
-const encodingQuality = 80;
+const encodingQuality = 85;
 
 Future<imageLib.Image> processImage(imageLib.Image _image) async {
   imageLib.grayscale(_image);
@@ -96,7 +96,7 @@ class _EditImageScreenState extends State<EditImageScreen>
       ],
     );
     CupertinoAlertDialog cupertinoAlertDialog = CupertinoAlertDialog(
-      title: Text("Hata"),
+      title: Text("Uyarı"),
       content: Text("Düşük bellek tespit edildi. İşleminiz devam edemezse uygulamayı kapatıp yeniden açmayı deneyin."),
       actions: [
         CupertinoButton(
@@ -139,6 +139,8 @@ class _EditImageScreenState extends State<EditImageScreen>
         return flipHorizontal(copyRotate(_image, -90));
       case 8:
         return copyRotate(_image, -90);
+      default:
+        return _image;
     }
   }
 
@@ -151,8 +153,9 @@ class _EditImageScreenState extends State<EditImageScreen>
     }
     File preferredFile = file == null ? widget.image : file;
     _imageData = await preferredFile.readAsBytes();
+    preferredFile=null;
     _image = imageLib.decodeImage(_imageData);
-    Map<String, IfdTag> exif = await readExifFromBytes(_imageData);
+ /*   Map<String, IfdTag> exif = await readExifFromBytes(_imageData);
     final orientationVal = exif == null
         ? null
         : exif.values
@@ -160,10 +163,11 @@ class _EditImageScreenState extends State<EditImageScreen>
     int orientation = orientationVal?.values?.first;
     if (orientation != null && orientation != 1) {
       _image = bakeOrientation(orientation, _image);
-    }
+    }*/
 
     //_image = await compute(processImage, _image);
-    _imageData = await compute(computeEncodeJpg, {"image": _image});
+    //_imageData = await compute(computeEncodeJpg, {"image": _image});
+    print("size: ${(_imageData.lengthInBytes / 1000000)}");
     bool isSizeOverLimit = ((_imageData.lengthInBytes / 1000000) > 2.99);
     if (isSizeOverLimit) {
       double scaleFactor = 3 / (_imageData.lengthInBytes / 1000000);
@@ -233,6 +237,7 @@ class _EditImageScreenState extends State<EditImageScreen>
     }
 
     _imageData = await compute(computeEncodeJpg, {"image": _image});
+    print("size: ${(_imageData.lengthInBytes / 1000000)}");
     bool isSizeOverLimit = ((_imageData.lengthInBytes / 1000000) > 2.99);
     if (isSizeOverLimit) {
       double scaleFactor = 3 / (_imageData.lengthInBytes / 1000000);
@@ -513,7 +518,6 @@ class _EditImageScreenState extends State<EditImageScreen>
                                 }
                               } else {
                                 widget.onCompleted(_imageData, fittedSize);
-                                Navigator.of(this.context).pop();
                               }
                             }
                           }

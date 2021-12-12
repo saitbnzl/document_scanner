@@ -6,11 +6,69 @@ import 'package:document_scanner/image_picker_modal.dart';
 import 'package:document_scanner/platform_bottom_sheet.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-Future<PickedFile> computePickFile(ImageSource imageSource) async {
+Future<XFile> computePickFile(context, ImageSource imageSource) async {
+  String permText = '';
+  Permission permission;
+  PermissionStatus permissionStatus;
+  if (imageSource == ImageSource.gallery) {
+    permText =
+        'Fotoğraflara erişim izni kalıcı olarak reddedildiği için ayarlara giderek bu uygulamaya fotoğraflara erişim izni vermeniz gerekmektedir.';
+    permission = Permission.photos;
+    permissionStatus = await permission.status;
+  } else {
+    permText =
+        'Kameraya erişim izni kalıcı olarak reddedildiği için ayarlara giderek bu uygulamaya kameraya erişim izni vermeniz gerekmektedir.';
+    permission = Permission.camera;
+    permissionStatus = await permission.status;
+  }
   final picker = ImagePicker();
-  return await picker.getImage(source: imageSource);
+  if (permissionStatus.isGranted||permissionStatus.isLimited) {
+    if (imageSource == ImageSource.gallery){
+      Utils.showProgress(context);
+    }
+    final file =  await picker.pickImage(source: imageSource, maxWidth: 1024, maxHeight: 1024, imageQuality: 85);
+    if (imageSource == ImageSource.gallery) {
+      Navigator.of(context).pop();
+    }
+    return file;
+  } else {
+    if (permissionStatus.isPermanentlyDenied) {
+      showPlatformDialog(
+          context: context,
+          builder: (_) {
+            return PlatformAlertDialog(
+              title: Text('İzin Gerekli'),
+              content: Text(permText),
+              actions: <Widget>[
+                PlatformDialogAction(
+                  child: PlatformText('İptal'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                PlatformDialogAction(
+                    child: PlatformText('Ayarlara Git'),
+                    onPressed: () => openAppSettings()),
+              ],
+            );
+          });
+    } else if (permissionStatus.isDenied) {
+      final status = await Permission.photos.request();
+      if (status.isGranted||status.isLimited) {
+        if (imageSource == ImageSource.gallery) {
+          Utils.showProgress(context);
+        }
+        final file =  await picker.pickImage(source: imageSource, maxWidth: 1024, maxHeight: 1024, imageQuality: 85);
+        if (imageSource == ImageSource.gallery) {
+          Navigator.of(context).pop();
+        }
+        return file;
+      }
+    }
+    return null;
+  }
 }
 
 class DocumentScanner {
@@ -34,62 +92,24 @@ class DocumentScanner {
         ));
   }
 
-  pickImage(context, {Function onCompleted, bool noEdit = false}) async {
-    Utils.showDialog(
-        context,
-        Platform.isAndroid
-            ? AlertDialog(
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Center(
-                        child: Container(
-                            width: 30,
-                            height: 30,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ))),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text("Lütfen bekleyiniz..."),
-                    )
-                  ],
-                ),
-              )
-            : CupertinoAlertDialog(
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Center(
-                        child: Container(
-                            width: 30,
-                            height: 30,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ))),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text("Lütfen bekleyiniz..."),
-                    )
-                  ],
-                ),
-              ));
-    final pickedFile = await computePickFile(ImageSource.gallery);
-    Navigator.of(context).pop();
-    Navigator.of(context).pop();
+
+  pickImage(ctx, {Function onCompleted, bool noEdit = false}) async {
+    final pickedFile = await computePickFile(ctx, ImageSource.gallery);
     if (pickedFile?.path != null) {
       if (noEdit) {
         onCompleted(File(pickedFile.path));
       } else {
-        Navigator.push(
-          context,
+        await Navigator.push(
+          ctx,
           MaterialPageRoute(
             builder: (context) => EditImageScreen(
-                context: context,
+                context: ctx,
                 image: File(pickedFile.path),
-                onCompleted: onCompleted),
+                onCompleted: (d, s){
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                  onCompleted(d,s);
+                }),
           ),
         );
       }
@@ -97,8 +117,7 @@ class DocumentScanner {
   }
 
   takePhoto(context, {Function onCompleted, bool noEdit = false}) async {
-    final pickedFile = await computePickFile(ImageSource.camera);
-    Navigator.of(context).pop();
+    final pickedFile = await computePickFile(context, ImageSource.camera);
     if (pickedFile?.path != null) {
       if (noEdit) {
         onCompleted(File(pickedFile.path));
@@ -109,7 +128,11 @@ class DocumentScanner {
             builder: (context) => EditImageScreen(
                 context: context,
                 image: File(pickedFile.path),
-                onCompleted: onCompleted),
+                onCompleted: (d, s){
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                  onCompleted(d,s);
+                }),
           ),
         );
       }

@@ -4,9 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Utils {
-  static showDialog(context, child) {
+  static Future showDialog(context, child){
     if (Platform.isAndroid) {
-      showGeneralDialog(
+      return showGeneralDialog(
         context: context,
         transitionBuilder: (BuildContext context, Animation<double> animation,
             Animation<double> secondaryAnimation, Widget _child) {
@@ -28,11 +28,56 @@ class Utils {
         },
       );
     } else if (Platform.isIOS) {
-      showCupertinoDialog(
+      return showCupertinoDialog(
           context: context,
           builder: (BuildContext context) {
             return child;
           });
     }
   }
+
+  static showProgress(ctx){
+    Utils.showDialog(
+        ctx,
+        Platform.isAndroid
+            ? AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(
+                  child: Container(
+                      width: 30,
+                      height: 30,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ))),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text("Lütfen bekleyiniz..."),
+              )
+            ],
+          ),
+        )
+            : CupertinoAlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(
+                  child: Container(
+                      width: 30,
+                      height: 30,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ))),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text("Lütfen bekleyiniz..."),
+              )
+            ],
+          ),
+        ));
+  }
+
 }
