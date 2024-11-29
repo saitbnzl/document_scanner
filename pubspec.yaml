@@ -1,11 +1,11 @@
 name: document_scanner
 description: A new flutter plugin project.
 version: 0.0.1
-author:
+author: Sait Banazılı
 homepage:
 
 environment:
-  sdk: ">=2.10.0 <3.0.0"
+  sdk: ">=2.7.0 <3.0.0"
   flutter: ">=1.10.0"
 
 dependencies:
@@ -19,7 +19,7 @@ dependencies:
   exif: ^1.0.3
   image: ^3.0.5
   async: ^2.4.2
-  auto_size_text: ^2.1.0
+  auto_size_text: ^3.0.0
   permission_handler: ^8.1.4+2
   flutter_platform_widgets: ^1.5.0
 
