@@ -24,7 +24,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(milliseconds: 500), () {
+    Future.delayed(Duration(milliseconds: 500),(){
       setupCamera();
     });
   }
@@ -96,7 +96,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             );
 
             // Attempt to take a picture and log where it's been saved.
-            final file = await _controller.takePicture();
+            await _controller.takePicture(path);
 
             // If the picture was taken, display it on a new screen.
             Navigator.of(context).pop();
@@ -104,7 +104,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => EditImageScreen(
-                  image: File(file.path),
+                  image: File(path),
                 ),
               ),
             );

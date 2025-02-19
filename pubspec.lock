@@ -14,7 +14,7 @@ packages:
       name: args
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.6.0"
+    version: "2.3.1"
   async:
     dependency: "direct main"
     description:
@@ -42,21 +42,7 @@ packages:
       name: camera
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.6"
-  camera_platform_interface:
-    dependency: transitive
-    description:
-      name: camera_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.2"
-  camera_web:
-    dependency: transitive
-    description:
-      name: camera_web
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.1+3"
+    version: "0.5.8+2"
   characters:
     dependency: transitive
     description:
@@ -91,7 +77,7 @@ packages:
       name: convert
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.1"
+    version: "3.1.0"
   cross_file:
     dependency: transitive
     description:
@@ -112,7 +98,7 @@ packages:
       name: exif
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.3"
+    version: "2.2.0"
   fake_async:
     dependency: transitive
     description:
@@ -126,7 +112,7 @@ packages:
       name: ffi
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.1"
+    version: "1.1.1"
   file:
     dependency: transitive
     description:
@@ -187,19 +173,10 @@ packages:
   image_picker:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "62263d0575007875936e74c90d59cd517635f32c"
-      url: "https://github.com/saitbnzl/image_picker.git"
-    source: git
-    version: "0.8.5+3"
-  image_picker_android:
-    dependency: transitive
-    description:
-      name: image_picker_android
+      name: image_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.4+13"
+    version: "0.8.4+4"
   image_picker_for_web:
     dependency: transitive
     description:
@@ -207,15 +184,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.4"
-  image_picker_ios:
-    dependency: transitive
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "1bf09b8076bfdf4097564165a2fd9831b4e8fbb0"
-      url: "https://github.com/saitbnzl/image_picker_ios"
-    source: git
-    version: "0.8.5+2"
   image_picker_platform_interface:
     dependency: transitive
     description:
@@ -268,33 +236,17 @@ packages:
   path_provider:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: a259b4a03298f19cbb469d7591fee183d1d8e347
-      url: "https://github.com/saitbnzl/path_provider.git"
-    source: git
-    version: "2.0.10"
-  path_provider_android:
-    dependency: transitive
-    description:
-      name: path_provider_android
+      name: path_provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.9"
-  path_provider_ios:
-    dependency: transitive
-    description:
-      name: path_provider_ios
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.7"
+    version: "2.0.2"
   path_provider_linux:
     dependency: transitive
     description:
       name: path_provider_linux
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.6"
+    version: "2.0.0"
   path_provider_macos:
     dependency: transitive
     description:
@@ -315,7 +267,7 @@ packages:
       name: path_provider_windows
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.6"
+    version: "2.0.1"
   pedantic:
     dependency: transitive
     description:
@@ -365,13 +317,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.2.1"
-  quiver:
-    dependency: transitive
-    description:
-      name: quiver
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.1.0"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -390,7 +335,7 @@ packages:
       name: sprintf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.1.0"
+    version: "6.0.2"
   stack_trace:
     dependency: transitive
     description:
@@ -402,13 +347,6 @@ packages:
     dependency: transitive
     description:
       name: stream_channel
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.0"
-  stream_transform:
-    dependency: transitive
-    description:
-      name: stream_transform
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
